@@ -10,7 +10,10 @@
 /*  - Stores latest conversion result; upper layer reads on demand    */
 /* ------------------------------------------------------------------ */
 
-void     BSW_ADC_Start(void);           /* Calibrate and start ADC interrupt mode */
-uint16_t BSW_ADC_GetLatestAD(void);     /* Returns latest AD value (0 ~ 4095) */
+typedef void (*BSW_ADC_Callback_t)(void);
+
+void     BSW_ADC_Start(void);                           /* Calibrate and start ADC interrupt mode */
+void     BSW_ADC_RegisterCallback(BSW_ADC_Callback_t cb); /* Register function called every PWM cycle */
+uint16_t BSW_ADC_GetLatestAD(void);                     /* Returns latest AD value (0 ~ 4095) */
 
 #endif /* INC_BSW_ADC_H_ */

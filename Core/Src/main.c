@@ -173,7 +173,7 @@ void SystemClock_Config(void)
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   if (htim->Instance == TIM2) {
-    ASW_Run();
+    /* ASW_Run is now called from ADC ConvCplt ISR (PWM-synchronized) */
   }
 }
 /* USER CODE END 4 */

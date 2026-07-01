@@ -1,8 +1,8 @@
 #include "bsw_adc.h"
 #include "adc.h"
 
-/* Latest AD conversion result, updated in HAL callback at 10 kHz */
-static volatile uint16_t s_latest_ad = 0U;
+static volatile uint16_t   s_latest_ad = 0U;
+static BSW_ADC_Callback_t  s_callback  = 0;
 
 void BSW_ADC_Start(void)
 {
@@ -14,6 +14,11 @@ void BSW_ADC_Start(void)
 
     /* Start ADC in interrupt mode; TIM1_CC3 external trigger fires conversions */
     HAL_ADC_Start_IT(&hadc1);
+}
+
+void BSW_ADC_RegisterCallback(BSW_ADC_Callback_t cb)
+{
+    s_callback = cb;
 }
 
 uint16_t BSW_ADC_GetLatestAD(void)
@@ -38,5 +43,9 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
     if (hadc->Instance == ADC1) {
         s_latest_ad = (uint16_t)HAL_ADC_GetValue(hadc);
         HAL_ADC_Start_IT(hadc);     /* re-arm for next external trigger */
+
+        if (s_callback != 0) {
+            s_callback();           /* notify upper layer every PWM cycle */
+        }
     }
 }
