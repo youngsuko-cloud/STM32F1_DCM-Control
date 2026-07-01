@@ -4,10 +4,11 @@
 
 static float s_duty_pct = 0.0f;
 
+#define RAMP_PERIOD  20000U   /* 1 s ramp at ~20 kHz ISR rate */
 
 void ASW_Init(void)
 {
-    s_duty_pct = 50.0f;
+    s_duty_pct = 0.0f;
     ABI_MonitorRegister("duty", &s_duty_pct);
     BSW_ADC_RegisterCallback(ASW_Run);
 }
@@ -17,8 +18,15 @@ void ASW_HandleCommand(void)
     (void)ABI_GetCommand();
 }
 
-/* Called from ADC ConvCplt ISR - fixed 50% to verify interrupt + PWM chain */
+/* Called from ADC ConvCplt ISR ~20 kHz - ramps duty 0→100% over 1 s */
 void ASW_Run(void)
 {
+    static uint32_t s_count = 0U;
+
+    s_duty_pct = (float)s_count * 100.0f / (float)RAMP_PERIOD;
     ABI_SetDuty(s_duty_pct);
+
+    if (++s_count >= RAMP_PERIOD) {
+        s_count = 0U;
+    }
 }

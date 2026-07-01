@@ -113,12 +113,6 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
     ASW_HandleCommand();
-
-    static uint32_t s_last_mon_tick = 0U;
-    if ((HAL_GetTick() - s_last_mon_tick) >= 10U) {
-      s_last_mon_tick = HAL_GetTick();
-      ABI_MonitorUpdate();
-    }
   }
   /* USER CODE END 3 */
 }
