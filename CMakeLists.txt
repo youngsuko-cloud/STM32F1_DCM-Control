@@ -44,6 +44,7 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 
 # Add sources to executable
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
+    Core/Src/asw.c
     Core/Src/abi.c
     Core/Src/bsw_adc.c
     Core/Src/bsw_pwm.c

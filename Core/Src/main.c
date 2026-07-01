@@ -25,6 +25,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "asw.h"
 #include "abi.h"
 #include "bsw_adc.h"
 #include "bsw_pwm.h"
@@ -100,6 +101,7 @@ int main(void)
   BSW_PWM_Start();
   BSW_ADC_Start();
   BSW_UART_Start();
+  ASW_Init();
   HAL_TIM_Base_Start_IT(&htim2);   /* 1 ms control loop timer */
   /* USER CODE END 2 */
 
@@ -110,6 +112,8 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+    ASW_HandleCommand();
+
     static uint32_t s_last_mon_tick = 0U;
     if ((HAL_GetTick() - s_last_mon_tick) >= 10U) {
       s_last_mon_tick = HAL_GetTick();
@@ -169,7 +173,7 @@ void SystemClock_Config(void)
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   if (htim->Instance == TIM2) {
-    /* ASW_Run(); -- to be implemented in ASW layer */
+    ASW_Run();
   }
 }
 /* USER CODE END 4 */
