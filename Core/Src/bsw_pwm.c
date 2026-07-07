@@ -4,7 +4,6 @@
 void BSW_PWM_Start(void)
 {
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 0U);
-    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, BSW_PWM_PERIOD / 2U);  /* 50% fixed for center-aligned verify */
 
     /* CubeMX sets CENTERALIGNED1 (CC events on DOWN count only).
      * Override to CENTERALIGNED3 (CC events on both UP and DOWN) so that
@@ -26,6 +25,21 @@ void BSW_PWM_Start(void)
     HAL_TIM_PWM_ConfigChannel(&htim1, &oc3, TIM_CHANNEL_3);
     HAL_TIM_OC_Start(&htim1, TIM_CHANNEL_3);
 
+    /* CH2 (PA9): logical inversion of CH1 (PA8), not the hardware CH1N
+     * complementary output (that's PB13). Achieved by reusing CH1's compare
+     * value with OCPolarity flipped to LOW, so switching instants stay
+     * identical and only the output level inverts.
+     * TODO: set CH2 OCPolarity=LOW in the CubeMX .ioc to avoid this override. */
+    TIM_OC_InitTypeDef oc2 = {0};
+    oc2.OCMode       = TIM_OCMODE_PWM1;
+    oc2.Pulse        = 0U;
+    oc2.OCPolarity   = TIM_OCPOLARITY_LOW;
+    oc2.OCNPolarity  = TIM_OCNPOLARITY_HIGH;
+    oc2.OCFastMode   = TIM_OCFAST_DISABLE;
+    oc2.OCIdleState  = TIM_OCIDLESTATE_RESET;
+    oc2.OCNIdleState = TIM_OCNIDLESTATE_RESET;
+    HAL_TIM_PWM_ConfigChannel(&htim1, &oc2, TIM_CHANNEL_2);
+
     /* CH1, CH2 : PWM outputs to H-bridge */
     HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
     HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
@@ -41,8 +55,5 @@ void BSW_PWM_SetDutyCount(uint32_t count)
 {
     if (count > BSW_PWM_PERIOD) { count = BSW_PWM_PERIOD; }
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, count);
-
-    /* CH2 is kept at 0 (unidirectional).
-     * [BSW REQ] If bidirectional control is required, CH2 handling must be added.
-     * See bsw_pwm.h comments. */
+    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, count);  /* mirrors CH1; OCPolarity_LOW inverts the output */
 }

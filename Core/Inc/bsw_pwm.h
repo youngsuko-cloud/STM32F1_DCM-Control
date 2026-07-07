@@ -6,7 +6,7 @@
 /* ------------------------------------------------------------------ */
 /*  BSW PWM                                                            */
 /*  - TIM1 CH1 (PA8) : PWM output to H-bridge                        */
-/*  - TIM1 CH2 (PA9) : Reserved (direction or complementary)         */
+/*  - TIM1 CH2 (PA9) : Logical inversion of CH1 (OCPolarity=LOW)     */
 /*  - TIM1 CH3       : OC Timing mode -> ADC external trigger         */
 /*  - Center-aligned, 10 kHz, ARR = 3599                              */
 /* ------------------------------------------------------------------ */
