@@ -3,18 +3,21 @@
 
 void BSW_PWM_Start(void)
 {
-    /* Set duty to 0 before enabling outputs */
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 0U);
-    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 0U);
+    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, BSW_PWM_PERIOD / 2U);  /* 50% fixed for center-aligned verify */
 
-    /* CH3 : PWM2 mode, CCR3 = ARR → OC3REF rising edge exactly at PWM peak.
-     * CubeMX configured CH3 as OC Timing (Frozen): OC3REF never changes → no
-     * rising edge → ADC external trigger (TIM1_CC3) never fires.
-     * PWM2 with CCR3=ARR: OC3REF=LOW for counter<ARR, HIGH at counter=ARR
-     * → one rising edge per cycle at the peak → triggers ADC. */
+    /* CubeMX sets CENTERALIGNED1 (CC events on DOWN count only).
+     * Override to CENTERALIGNED3 (CC events on both UP and DOWN) so that
+     * CCR3 = ARR fires exactly at the PWM peak (UP count reaching ARR).
+     * TODO: update CubeMX project to CENTERALIGNED3 to avoid this override. */
+    htim1.Init.CounterMode = TIM_COUNTERMODE_CENTERALIGNED3;
+    HAL_TIM_Base_Init(&htim1);
+
+    /* CH3 : PWM2 mode, CCR3 = ARR → one OC3REF rising edge per cycle at peak.
+     * DOWN count starts at ARR-1 (3598) → never reaches CCR3=ARR → no 2nd edge. */
     TIM_OC_InitTypeDef oc3 = {0};
     oc3.OCMode       = TIM_OCMODE_PWM2;
-    oc3.Pulse        = 1800U;                /* CCR3 = 1800, test value */
+    oc3.Pulse        = BSW_PWM_PERIOD - 1U;  /* CCR3 = 3598 = ARR-1 (ARR masked by update event) */
     oc3.OCPolarity   = TIM_OCPOLARITY_HIGH;
     oc3.OCNPolarity  = TIM_OCNPOLARITY_HIGH;
     oc3.OCFastMode   = TIM_OCFAST_DISABLE;
