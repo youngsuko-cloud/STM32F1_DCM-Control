@@ -18,15 +18,25 @@ void ASW_HandleCommand(void)
     (void)ABI_GetCommand();
 }
 
-/* Called from ADC ConvCplt ISR ~20 kHz - ramps duty 0→100% over 1 s */
+/* Called from ADC ConvCplt ISR ~20 kHz - triangle-ramps duty 0→100%→0% every 2 s */
 void ASW_Run(void)
 {
     static uint32_t s_count = 0U;
+    static uint8_t  s_up    = 1U;
 
     s_duty_pct = (float)s_count * 100.0f / (float)RAMP_PERIOD;
     ABI_SetDuty(s_duty_pct);
 
-    if (++s_count >= RAMP_PERIOD) {
-        s_count = 0U;
+    if (s_up) {
+        if (++s_count >= RAMP_PERIOD) {
+            s_count = RAMP_PERIOD;
+            s_up    = 0U;
+        }
+    } else {
+        if (s_count == 0U) {
+            s_up = 1U;
+        } else {
+            --s_count;
+        }
     }
 }
